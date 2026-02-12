@@ -35,4 +35,6 @@ Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searc
     return bestPosition;
 }
 
-// 聚类算法
+// 聚类算法：从密度场中提取实体
+void ScanProbe::clusterDensityField() {
+    // 这里实现一个简单的聚类算法
