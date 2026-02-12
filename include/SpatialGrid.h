@@ -36,4 +36,7 @@ private:
 
     // 获取体素内的所有点
     std::vector<size_t> getPointsInVoxel(const Vector3& position) const;
+
+    // 密度采样：在给定空间范围内采样密度超过阈值的点
+    std::vector<Vector3> sampleDensityPoints(const BoundingBox& bounds, float densityThreshold, float sampleStep) const;
 };

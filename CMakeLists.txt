@@ -12,8 +12,12 @@ include_directories(include)
 # 收集源代码
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
+# 创建核心库
+add_library(ame-scanner-core ${SOURCES})
+
 # 创建可执行文件
-add_executable(ame-scanner ${SOURCES})
+add_executable(ame-scanner src/main.cpp)
+target_link_libraries(ame-scanner PRIVATE ame-scanner-core)
 
 # 配置测试
 enable_testing()

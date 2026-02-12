@@ -107,3 +107,24 @@ Vector3 SpatialGrid::getDensityGradient(const Vector3& position) const {
     
     return Vector3(gradientX, gradientY, gradientZ);
 }
+
+// 密度采样：在给定空间范围内采样密度超过阈值的点
+std::vector<Vector3> SpatialGrid::sampleDensityPoints(const BoundingBox& bounds, float densityThreshold, float sampleStep) const {
+    std::vector<Vector3> densityPoints;
+    
+    // 在边界范围内按照指定步长进行采样
+    for (float x = bounds.min.x; x <= bounds.max.x; x += sampleStep) {
+        for (float y = bounds.min.y; y <= bounds.max.y; y += sampleStep) {
+            for (float z = bounds.min.z; z <= bounds.max.z; z += sampleStep) {
+                Vector3 samplePosition(x, y, z);
+                float density = getDensityAt(samplePosition);
+                
+                if (density > densityThreshold) {
+                    densityPoints.push_back(samplePosition);
+                }
+            }
+        }
+    }
+    
+    return densityPoints;
+}
