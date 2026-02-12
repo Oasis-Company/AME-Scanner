@@ -15,4 +15,6 @@ void ScanProbe::setDensityThreshold(float threshold) {
 // 计算局部密度最大值
 Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searchRadius) const {
     Vector3 bestPosition = startPosition;
-    float bestDensity
+    float bestDensity = spatialGrid.getDensityAt(startPosition);
+    
+    // 简单的
