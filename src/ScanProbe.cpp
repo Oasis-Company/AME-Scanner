@@ -51,4 +51,11 @@ void ScanProbe::clusterDensityField() {
     // 示例：创建一个简单的聚类
     BoundingBox clusterBounds(Vector3(-1, -1, -1), Vector3(1, 1, 1));
     RawCluster cluster;
-    cluster.bounds = clusterBounds
+    cluster.bounds = clusterBounds;
+    cluster.averageDensity = 0.5f;
+    cluster.points.push_back(Vector3(0, 0, 0));
+    
+    detectedClusters.push_back(cluster);
+}
+
+// 执行全局扫描：寻找所有
