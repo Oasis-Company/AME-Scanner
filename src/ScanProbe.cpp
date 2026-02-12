@@ -24,4 +24,15 @@ Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searc
             for (float dz = -searchRadius; dz <= searchRadius; dz += stepSize) {
                 Vector3 testPosition = startPosition + Vector3(dx, dy, dz);
                 float testDensity = spatialGrid.getDensityAt(testPosition);
-                if (testDensity > bestD
+                if (testDensity > bestDensity) {
+                    bestDensity = testDensity;
+                    bestPosition = testPosition;
+                }
+            }
+        }
+    }
+    
+    return bestPosition;
+}
+
+// 聚类算法
