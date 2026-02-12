@@ -43,3 +43,10 @@ void ScanProbe::clusterDensityField() {
     // 3. 为每个聚类创建 RawCluster
     
     // 由于我们没有直接访问原始点数据的方法，这里使用模拟数据
+    // 实际实现中应该使用更复杂的聚类算法
+    
+    // 模拟一些聚类
+    detectedClusters.clear();
+    
+    // 示例：创建一个简单的聚类
+    Bounding
