@@ -49,4 +49,6 @@ void ScanProbe::clusterDensityField() {
     detectedClusters.clear();
     
     // 示例：创建一个简单的聚类
-    Bounding
+    BoundingBox clusterBounds(Vector3(-1, -1, -1), Vector3(1, 1, 1));
+    RawCluster cluster;
+    cluster.bounds = clusterBounds
