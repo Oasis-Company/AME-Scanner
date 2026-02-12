@@ -38,3 +38,8 @@ Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searc
 // 聚类算法：从密度场中提取实体
 void ScanProbe::clusterDensityField() {
     // 这里实现一个简单的聚类算法
+    // 1. 找到密度高于阈值的点
+    // 2. 对这些点进行聚类
+    // 3. 为每个聚类创建 RawCluster
+    
+    // 由于我们没有直接访问原始点数据的方法，这里使用模拟数据
