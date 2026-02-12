@@ -20,4 +20,8 @@ Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searc
     // 简单的网格搜索
     float stepSize = searchRadius * 0.1f;
     for (float dx = -searchRadius; dx <= searchRadius; dx += stepSize) {
-        for (float dy = -searchRadius; dy <= searchRadius; dy += stepSize)
+        for (float dy = -searchRadius; dy <= searchRadius; dy += stepSize) {
+            for (float dz = -searchRadius; dz <= searchRadius; dz += stepSize) {
+                Vector3 testPosition = startPosition + Vector3(dx, dy, dz);
+                float testDensity = spatialGrid.getDensityAt(testPosition);
+                if (testDensity > bestD
