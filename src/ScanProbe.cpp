@@ -64,3 +64,29 @@ std::vector<RawCluster> ScanProbe::performGlobalSurvey() {
     return detectedClusters;
 }
 
+// 针对特定 AEID 执行局部精扫
+void ScanProbe::refineEntity(const std::string& aeid, float resolution) {
+    // 这里实现局部精扫逻辑
+    // 实际实现中应该根据 AEID 找到对应的实体，然后在其周围进行更精细的扫描
+    
+    // 示例：简单打印信息
+    // std::cout << "Refining entity " << aeid << " with resolution " << resolution << std::endl;
+}
+
+// 状态汇报：将探测结果准备好，发送给协议引擎
+ScanPayload ScanProbe::capturePayload() {
+    ScanPayload payload;
+    payload.clusters = detectedClusters;
+    
+    // 计算全局边界
+    if (!detectedClusters.empty()) {
+        BoundingBox globalBounds = detectedClusters[0].bounds;
+        for (const auto& cluster : detectedClusters) {
+            globalBounds.expandBy(cluster.bounds.min);
+            globalBounds.expandBy(cluster.bounds.max);
+        }
+        payload.globalBounds = globalBounds;
+    }
+    
+    return payload;
+}
