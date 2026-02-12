@@ -58,4 +58,9 @@ void ScanProbe::clusterDensityField() {
     detectedClusters.push_back(cluster);
 }
 
-// 执行全局扫描：寻找所有
+// 执行全局扫描：寻找所有潜在的实体簇
+std::vector<RawCluster> ScanProbe::performGlobalSurvey() {
+    clusterDensityField();
+    return detectedClusters;
+}
+
