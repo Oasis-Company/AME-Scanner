@@ -22,11 +22,74 @@ std::vector<size_t> SpatialGrid::getPointsInVoxel(const Vector3& position) const
     return std::vector<size_t>();
 }
 
-// 从 FieldLoader 加载数据
-void SpatialGrid::loadData(const std::vector<Vector3>& positions, const std::vector<float>& opacities) {
-    this->positions = positions;
+// 从 FieldLoader 加载数据（SoA 格式）
+void SpatialGrid::loadData(const std::vector<float>& xPositions, const std::vector<float>& yPositions, const std::vector<float>& zPositions, const std::vector<float>& opacities) {
+    // 转换 SoA 到 AoS 格式用于空间索引
+    this->positions.clear();
     this->opacities = opacities;
+    
+    for (size_t i = 0; i < xPositions.size(); i++) {
+        this->positions.emplace_back(xPositions[i], yPositions[i], zPositions[i]);
+    }
+    
     buildAccelerationStructure();
+}
+
+// 核心查询函数：在指定位置和搜索半径内查询密度
+float SpatialGrid::queryDensity(const Vector3& targetPos, float searchRadius) const {
+    // 计算搜索立方体的边界
+    float minX = targetPos.x - searchRadius;
+    float maxX = targetPos.x + searchRadius;
+    float minY = targetPos.y - searchRadius;
+    float maxY = targetPos.y + searchRadius;
+    float minZ = targetPos.z - searchRadius;
+    float maxZ = targetPos.z + searchRadius;
+    
+    // 搜索附近的体素
+    float totalDensity = 0.0f;
+    int count = 0;
+    
+    // 计算需要搜索的体素范围
+    int startX = static_cast<int>(std::floor(minX / voxelSize));
+    int endX = static_cast<int>(std::floor(maxX / voxelSize));
+    int startY = static_cast<int>(std::floor(minY / voxelSize));
+    int endY = static_cast<int>(std::floor(maxY / voxelSize));
+    int startZ = static_cast<int>(std::floor(minZ / voxelSize));
+    int endZ = static_cast<int>(std::floor(maxZ / voxelSize));
+    
+    // 遍历附近的体素
+    for (int x = startX; x <= endX; x++) {
+        for (int y = startY; y <= endY; y++) {
+            for (int z = startZ; z <= endZ; z++) {
+                Vector3 voxelPos(static_cast<float>(x) * voxelSize, 
+                                static_cast<float>(y) * voxelSize, 
+                                static_cast<float>(z) * voxelSize);
+                
+                size_t hash = hashVoxel(voxelPos);
+                auto it = voxelGrid.find(hash);
+                if (it != voxelGrid.end()) {
+                    const Voxel& voxel = it->second;
+                    for (size_t idx : voxel.pointIndices) {
+                        const Vector3& pointPos = positions[idx];
+                        float distance = (pointPos - targetPos).length();
+                        
+                        if (distance <= searchRadius) {
+                            // 距离加权密度
+                            float weight = 1.0f - (distance / searchRadius);
+                            totalDensity += opacities[idx] * weight;
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if (count > 0) {
+        return std::min(1.0f, totalDensity / count);
+    }
+    
+    return 0.0f;
 }
 
 // 建立加速结构（如 Hash-grid 或 Octree）
