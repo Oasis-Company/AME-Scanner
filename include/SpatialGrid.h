@@ -16,8 +16,11 @@ public:
     // 建立加速结构（如 Hash-grid 或 Octree）
     void buildAccelerationStructure();
 
-    // 从 FieldLoader 加载数据
-    void loadData(const std::vector<Vector3>& positions, const std::vector<float>& opacities);
+    // 从 FieldLoader 加载数据（SoA 格式）
+    void loadData(const std::vector<float>& xPositions, const std::vector<float>& yPositions, const std::vector<float>& zPositions, const std::vector<float>& opacities);
+
+    // 核心查询函数：在指定位置和搜索半径内查询密度
+    float queryDensity(const Vector3& targetPos, float searchRadius) const;
 
 private:
     // 空间哈希网格实现
