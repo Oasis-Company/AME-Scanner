@@ -3,6 +3,7 @@
 #include "ScanProbe.h"
 #include <iostream>
 #include <string>
+#include <chrono>
 
 int main(int argc, char* argv[]) {
     // 检查命令行参数
@@ -32,15 +33,25 @@ int main(int argc, char* argv[]) {
 
     // 4. 构建空间网格
     SpatialGrid grid;
-    // 注意：这里需要访问 FieldLoader 的私有成员，实际实现中应该提供相应的接口
-    // 这里我们使用模拟数据
-    std::vector<Vector3> positions;
-    std::vector<float> opacities;
-    positions.push_back(Vector3(0, 0, 0));
-    opacities.push_back(0.5f);
-    grid.loadData(positions, opacities);
+    // 使用 SoA 数据格式加载
+    grid.loadData(loader.getXPositions(), loader.getYPositions(), loader.getZPositions(), loader.getOpacities());
+    std::cout << "Loaded " << loader.getPointCount() << " points" << std::endl;
 
-    // 5. 执行扫描
+    // 5. 测试核心查询函数性能
+    std::cout << "Testing query performance..." << std::endl;
+    Vector3 testPos(0, 0, 0);
+    float searchRadius = 0.1f;
+    
+    // 计时查询
+    auto start = std::chrono::high_resolution_clock::now();
+    float density = grid.queryDensity(testPos, searchRadius);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    
+    std::cout << "Density at (0,0,0): " << density << std::endl;
+    std::cout << "Query time: " << duration << " microseconds" << std::endl;
+
+    // 6. 执行扫描
     ScanProbe probe;
     probe.setSpatialGrid(grid);
     probe.setDensityThreshold(0.01f);
@@ -50,7 +61,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Detected " << clusters.size() << " clusters" << std::endl;
 
-    // 6. 生成扫描结果
+    // 7. 生成扫描结果
     ScanPayload payload = probe.capturePayload();
     std::cout << "Scan completed." << std::endl;
 
