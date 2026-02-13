@@ -32,40 +32,41 @@ bool FieldLoader::loadSplattingField(const std::string& filePath) {
         }
     }
 
-    // 读取顶点数据
-    positions.reserve(vertexCount);
+    // 读取顶点数据 - 按需加载，只提取 x, y, z 和 opacity
+    xPositions.reserve(vertexCount);
+    yPositions.reserve(vertexCount);
+    zPositions.reserve(vertexCount);
     opacities.reserve(vertexCount);
-    scales.reserve(vertexCount * 3);
-    rotations.reserve(vertexCount * 4);
 
     // 初始化全局边界
     globalBounds = BoundingBox(Vector3(1e9, 1e9, 1e9), Vector3(-1e9, -1e9, -1e9));
 
     while (std::getline(file, line) && vertexCount > 0) {
         std::istringstream iss(line);
-        float x, y, z, opacity, scaleX, scaleY, scaleZ, rotX, rotY, rotZ, rotW;
+        float x, y, z, opacity;
         
         // 假设 PLY 文件格式为：x y z r g b opacity scaleX scaleY scaleZ rotX rotY rotZ rotW
         iss >> x >> y >> z;
+        
         // 跳过颜色信息
         float r, g, b;
         iss >> r >> g >> b;
-        // 读取不透明度、缩放和旋转
-        iss >> opacity >> scaleX >> scaleY >> scaleZ >> rotX >> rotY >> rotZ >> rotW;
+        
+        // 读取不透明度
+        iss >> opacity;
+        
+        // 跳过缩放和旋转信息（按需加载）
+        float scaleX, scaleY, scaleZ, rotX, rotY, rotZ, rotW;
+        iss >> scaleX >> scaleY >> scaleZ >> rotX >> rotY >> rotZ >> rotW;
 
-        Vector3 position(x, y, z);
-        positions.push_back(position);
+        // 存储数据到 SoA 结构
+        xPositions.push_back(x);
+        yPositions.push_back(y);
+        zPositions.push_back(z);
         opacities.push_back(opacity);
-        scales.push_back(scaleX);
-        scales.push_back(scaleY);
-        scales.push_back(scaleZ);
-        rotations.push_back(rotX);
-        rotations.push_back(rotY);
-        rotations.push_back(rotZ);
-        rotations.push_back(rotW);
 
         // 更新全局边界
-        globalBounds.expandBy(position);
+        globalBounds.expandBy(Vector3(x, y, z));
 
         vertexCount--;
     }
@@ -76,38 +77,32 @@ bool FieldLoader::loadSplattingField(const std::string& filePath) {
 
 // 显存管理：释放不需要的颜色信息，只保留几何与不透明度
 void FieldLoader::optimizeMemory() {
-    // 这里可以实现更复杂的内存优化策略
-    // 例如：只保留不透明度大于阈值的点
-    std::vector<Vector3> optimizedPositions;
+    // 实现动态阈值过滤，去除虚假密度
+    std::vector<float> optimizedXPositions;
+    std::vector<float> optimizedYPositions;
+    std::vector<float> optimizedZPositions;
     std::vector<float> optimizedOpacities;
-    std::vector<float> optimizedScales;
-    std::vector<float> optimizedRotations;
 
     const float opacityThreshold = 0.01f;
     for (size_t i = 0; i < opacities.size(); i++) {
         if (opacities[i] > opacityThreshold) {
-            optimizedPositions.push_back(positions[i]);
+            optimizedXPositions.push_back(xPositions[i]);
+            optimizedYPositions.push_back(yPositions[i]);
+            optimizedZPositions.push_back(zPositions[i]);
             optimizedOpacities.push_back(opacities[i]);
-            optimizedScales.push_back(scales[i * 3]);
-            optimizedScales.push_back(scales[i * 3 + 1]);
-            optimizedScales.push_back(scales[i * 3 + 2]);
-            optimizedRotations.push_back(rotations[i * 4]);
-            optimizedRotations.push_back(rotations[i * 4 + 1]);
-            optimizedRotations.push_back(rotations[i * 4 + 2]);
-            optimizedRotations.push_back(rotations[i * 4 + 3]);
         }
     }
 
     // 替换原始数据
-    positions.swap(optimizedPositions);
+    xPositions.swap(optimizedXPositions);
+    yPositions.swap(optimizedYPositions);
+    zPositions.swap(optimizedZPositions);
     opacities.swap(optimizedOpacities);
-    scales.swap(optimizedScales);
-    rotations.swap(optimizedRotations);
 
     // 重新计算全局边界
     globalBounds = BoundingBox(Vector3(1e9, 1e9, 1e9), Vector3(-1e9, -1e9, -1e9));
-    for (const auto& pos : positions) {
-        globalBounds.expandBy(pos);
+    for (size_t i = 0; i < xPositions.size(); i++) {
+        globalBounds.expandBy(Vector3(xPositions[i], yPositions[i], zPositions[i]));
     }
 }
 
