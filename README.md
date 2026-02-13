@@ -75,5 +75,25 @@ We are replacing **static polygons** with **dynamic systems**.
 
 ---
 
+## EXPORT OPTIONS
+
+AME offers two export options:
+
+1. **oasisdomain (osdm)** - The primary and most common export format for interactive worlds. Note that osdm is not a file format but a folder structure specification.
+
+2. **eme world (emewd)** - A special single-file export format that is part of the eme project (another of our initiatives, a radical AI project where AI agents learn like human infants). This feature is not included by default and must be downloaded as a plugin. The eme world can exist without a 3D scene for human display.
+
+## METACLASS SUPPLEMENT
+
+1. Each metaclass has its own independent parameter list
+2. Metaclasses will be continuously updated (both in quantity and individual parameters)
+3. The overall trend is from concrete to abstract, as metaclasses evolve from real-world origins to increasingly self-consistent systems
+4. Metaclasses can be divided into two main categories:
+   a. **Root Metaclasses**: Such as smoothness, space (these can also serve as parameters for standard metaclasses)
+   b. **Standard Metaclasses**: Containers, wheels, liquids, etc. (grass and water are examples of their objects; root metaclasses have no objects, which is the fundamental difference)
+5. A metaclass can have multiple representations (e.g., space can be represented in Cartesian coordinates or from a sensory perspective); each representation is called a "room"
+
+---
+
 *Oasis Company / AMAR Engine Project*  
 **Direction defines miracles.**
