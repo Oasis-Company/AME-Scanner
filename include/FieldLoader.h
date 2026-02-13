@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include <string>
+#include <vector>
 
 class FieldLoader {
 public:
@@ -14,10 +15,19 @@ public:
     // 获取当前场域的边界信息
     BoundingBox getGlobalBounds() const;
 
+    // SoA 数据访问接口
+    const std::vector<float>& getXPositions() const { return xPositions; }
+    const std::vector<float>& getYPositions() const { return yPositions; }
+    const std::vector<float>& getZPositions() const { return zPositions; }
+    const std::vector<float>& getOpacities() const { return opacities; }
+    size_t getPointCount() const { return xPositions.size(); }
+
 private:
     BoundingBox globalBounds;
-    std::vector<Vector3> positions;
+    
+    // SoA (Structure of Arrays) 存储模式
+    std::vector<float> xPositions;
+    std::vector<float> yPositions;
+    std::vector<float> zPositions;
     std::vector<float> opacities;
-    std::vector<float> scales;
-    std::vector<float> rotations;
 };
