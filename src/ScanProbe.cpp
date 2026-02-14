@@ -1,6 +1,7 @@
 #include "ScanProbe.h"
 #include <cmath>
 #include <vector>
+#include <sstream>
 
 // 设置空间网格
 void ScanProbe::setSpatialGrid(const SpatialGrid& grid) {
@@ -10,6 +11,12 @@ void ScanProbe::setSpatialGrid(const SpatialGrid& grid) {
 // 设置密度阈值
 void ScanProbe::setDensityThreshold(float threshold) {
     this->densityThreshold = threshold;
+}
+
+// 设置几何降噪参数
+void ScanProbe::setOutlierRemovalParams(float radius, int minNeighbors) {
+    this->outlierRadius = radius;
+    this->minNeighbors = minNeighbors;
 }
 
 // 计算局部密度最大值
@@ -35,6 +42,51 @@ Vector3 ScanProbe::findLocalDensityMax(const Vector3& startPosition, float searc
     return bestPosition;
 }
 
+// 将 RawCluster 转换为 AmeEntity
+AmeEntity ScanProbe::convertToEntity(const RawCluster& cluster, int entityId) const {
+    AmeEntity entity;
+    
+    // 生成实体唯一标识符
+    std::stringstream ss;
+    ss << "entity_" << entityId;
+    entity.aeid_alpha = ss.str();
+    
+    // 复制基本属性
+    entity.averageDensity = cluster.averageDensity;
+    entity.points = cluster.points;
+    
+    // 应用几何降噪
+    if (!entity.points.empty()) {
+        entity.points = spatialGrid.removeOutliers(entity.points, outlierRadius, minNeighbors);
+    }
+    
+    // 拟合 OBB
+    if (!entity.points.empty()) {
+        entity.bounds = fitOBB(entity.points);
+    } else {
+        entity.bounds = cluster.bounds;
+    }
+    
+    // 计算中心点和尺寸
+    entity.centroid = entity.bounds.getCenter();
+    entity.extents = entity.bounds.getExtents();
+    
+    // 初始化旋转（默认为零旋转）
+    entity.orientation = Vector3(0, 0, 0);
+    
+    // 生成物理引擎句柄
+    std::stringstream phandle;
+    phandle << "physics_" << entityId;
+    entity.physics_handle = phandle.str();
+    
+    // 生成特征哈希（简化实现）
+    std::stringstream fhash;
+    fhash << "hash_" << entityId;
+    entity.feature_hash = fhash.str();
+    
+    return entity;
+}
+
 // 聚类算法：从密度场中提取实体
 void ScanProbe::clusterDensityField() {
     // 这里实现一个简单的聚类算法
@@ -54,6 +106,10 @@ void ScanProbe::clusterDensityField() {
     cluster.bounds = clusterBounds;
     cluster.averageDensity = 0.5f;
     cluster.points.push_back(Vector3(0, 0, 0));
+    cluster.points.push_back(Vector3(0.1, 0.1, 0.1));
+    cluster.points.push_back(Vector3(-0.1, -0.1, -0.1));
+    cluster.points.push_back(Vector3(0.1, -0.1, 0.1));
+    cluster.points.push_back(Vector3(-0.1, 0.1, -0.1));
     
     detectedClusters.push_back(cluster);
 }
@@ -86,6 +142,12 @@ ScanPayload ScanProbe::capturePayload() {
             globalBounds.expandBy(cluster.bounds.max);
         }
         payload.globalBounds = globalBounds;
+    }
+    
+    // 转换 RawCluster 为 AmeEntity
+    for (int i = 0; i < detectedClusters.size(); i++) {
+        AmeEntity entity = convertToEntity(detectedClusters[i], i);
+        payload.entities.push_back(entity);
     }
     
     return payload;

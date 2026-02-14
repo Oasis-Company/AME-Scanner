@@ -1,6 +1,7 @@
 #include "FieldLoader.h"
 #include "SpatialGrid.h"
 #include "ScanProbe.h"
+#include "common.h"
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -55,6 +56,7 @@ int main(int argc, char* argv[]) {
     ScanProbe probe;
     probe.setSpatialGrid(grid);
     probe.setDensityThreshold(0.01f);
+    probe.setOutlierRemovalParams(0.1f, 5); // 设置几何降噪参数
 
     std::cout << "Performing global survey..." << std::endl;
     std::vector<RawCluster> clusters = probe.performGlobalSurvey();
@@ -64,6 +66,19 @@ int main(int argc, char* argv[]) {
     // 7. 生成扫描结果
     ScanPayload payload = probe.capturePayload();
     std::cout << "Scan completed." << std::endl;
+    std::cout << "Generated " << payload.entities.size() << " entities" << std::endl;
+
+    // 8. 打印实体信息
+    for (int i = 0; i < payload.entities.size(); i++) {
+        const AmeEntity& entity = payload.entities[i];
+        std::cout << "Entity " << i << ":" << std::endl;
+        std::cout << "  AEID: " << entity.aeid_alpha << std::endl;
+        std::cout << "  Physics Handle: " << entity.physics_handle << std::endl;
+        std::cout << "  Average Density: " << entity.averageDensity << std::endl;
+        std::cout << "  Centroid: (" << entity.centroid.x << ", " << entity.centroid.y << ", " << entity.centroid.z << ")" << std::endl;
+        std::cout << "  Extents: (" << entity.extents.x << ", " << entity.extents.y << ", " << entity.extents.z << ")" << std::endl;
+        std::cout << "  Points after denoising: " << entity.points.size() << std::endl;
+    }
 
     return 0;
 }

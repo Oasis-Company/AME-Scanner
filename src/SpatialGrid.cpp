@@ -191,3 +191,32 @@ std::vector<Vector3> SpatialGrid::sampleDensityPoints(const BoundingBox& bounds,
     
     return densityPoints;
 }
+
+// 几何降噪：使用半径滤波器剔除孤立点
+std::vector<Vector3> SpatialGrid::removeOutliers(const std::vector<Vector3>& points, float radius, int minNeighbors) const {
+    std::vector<Vector3> filteredPoints;
+    
+    for (const Vector3& point : points) {
+        int neighborCount = 0;
+        
+        // 计算该点周围半径内的邻居数量
+        for (const Vector3& other : points) {
+            if (&point != &other) {
+                float distance = (point - other).length();
+                if (distance <= radius) {
+                    neighborCount++;
+                    if (neighborCount >= minNeighbors) {
+                        break; // 达到最小邻居数，提前退出
+                    }
+                }
+            }
+        }
+        
+        // 如果邻居数达到阈值，保留该点
+        if (neighborCount >= minNeighbors) {
+            filteredPoints.push_back(point);
+        }
+    }
+    
+    return filteredPoints;
+}

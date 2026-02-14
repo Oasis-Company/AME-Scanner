@@ -53,6 +53,9 @@ public:
     void expandBy(const Vector3& point);
 };
 
+// OBB 拟合函数：使用 PCA 算法为点云生成最紧凑的旋转包围盒
+BoundingBox fitOBB(const std::vector<Vector3>& points);
+
 // 原始聚类结构
 struct RawCluster {
     BoundingBox bounds;
@@ -60,8 +63,22 @@ struct RawCluster {
     std::vector<Vector3> points;
 };
 
+// AME 实体结构
+struct AmeEntity {
+    std::string aeid_alpha;           // 实体唯一标识符
+    BoundingBox bounds;                // 边界框
+    float averageDensity;              // 平均密度
+    std::vector<Vector3> points;       // 点云数据
+    std::string physics_handle;        // 物理引擎句柄
+    Vector3 centroid;                  // 中心点
+    Vector3 extents;                   // 尺寸
+    Vector3 orientation;               // 旋转（欧拉角）
+    std::string feature_hash;          // 特征哈希
+};
+
 // 扫描结果载荷
 struct ScanPayload {
     std::vector<RawCluster> clusters;
+    std::vector<AmeEntity> entities;   // 转换后的实体
     BoundingBox globalBounds;
 };

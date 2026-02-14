@@ -42,4 +42,7 @@ private:
 
     // 密度采样：在给定空间范围内采样密度超过阈值的点
     std::vector<Vector3> sampleDensityPoints(const BoundingBox& bounds, float densityThreshold, float sampleStep) const;
+
+    // 几何降噪：使用半径滤波器剔除孤立点
+    std::vector<Vector3> removeOutliers(const std::vector<Vector3>& points, float radius, int minNeighbors) const;
 };
