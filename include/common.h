@@ -53,6 +53,19 @@ public:
     void expandBy(const Vector3& point);
 };
 
+// 旋转矩阵结构
+typedef float RotationMatrix[3][3];
+
+// PCA 计算结果结构
+struct PCAData {
+    Vector3 centroid;        // 点云质心
+    RotationMatrix rotation; // 旋转矩阵
+    Vector3 extents;         // 旋转后的点云尺寸
+};
+
+// PCA 计算函数：计算点云的主成分和旋转矩阵
+PCAData computePCA(const std::vector<Vector3>& points);
+
 // OBB 拟合函数：使用 PCA 算法为点云生成最紧凑的旋转包围盒
 BoundingBox fitOBB(const std::vector<Vector3>& points);
 
@@ -73,6 +86,7 @@ struct AmeEntity {
     Vector3 centroid;                  // 中心点
     Vector3 extents;                   // 尺寸
     Vector3 orientation;               // 旋转（欧拉角）
+    RotationMatrix rotation;           // 旋转矩阵
     std::string feature_hash;          // 特征哈希
 };
 

@@ -77,6 +77,10 @@ int main(int argc, char* argv[]) {
         std::cout << "  Average Density: " << entity.averageDensity << std::endl;
         std::cout << "  Centroid: (" << entity.centroid.x << ", " << entity.centroid.y << ", " << entity.centroid.z << ")" << std::endl;
         std::cout << "  Extents: (" << entity.extents.x << ", " << entity.extents.y << ", " << entity.extents.z << ")" << std::endl;
+        std::cout << "  Rotation Matrix:" << std::endl;
+        std::cout << "    [" << entity.rotation[0][0] << ", " << entity.rotation[0][1] << ", " << entity.rotation[0][2] << "]" << std::endl;
+        std::cout << "    [" << entity.rotation[1][0] << ", " << entity.rotation[1][1] << ", " << entity.rotation[1][2] << "]" << std::endl;
+        std::cout << "    [" << entity.rotation[2][0] << ", " << entity.rotation[2][1] << ", " << entity.rotation[2][2] << "]" << std::endl;
         std::cout << "  Points after denoising: " << entity.points.size() << std::endl;
     }
 

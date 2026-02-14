@@ -60,6 +60,9 @@ AmeEntity ScanProbe::convertToEntity(const RawCluster& cluster, int entityId) co
         entity.points = spatialGrid.removeOutliers(entity.points, outlierRadius, minNeighbors);
     }
     
+    // 计算 PCA 数据
+    PCAData pcaData = computePCA(entity.points);
+    
     // 拟合 OBB
     if (!entity.points.empty()) {
         entity.bounds = fitOBB(entity.points);
@@ -67,12 +70,18 @@ AmeEntity ScanProbe::convertToEntity(const RawCluster& cluster, int entityId) co
         entity.bounds = cluster.bounds;
     }
     
-    // 计算中心点和尺寸
-    entity.centroid = entity.bounds.getCenter();
-    entity.extents = entity.bounds.getExtents();
+    // 设置中心点和尺寸
+    entity.centroid = pcaData.centroid;
+    entity.extents = pcaData.extents;
     
-    // 初始化旋转（默认为零旋转）
-    entity.orientation = Vector3(0, 0, 0);
+    // 设置旋转信息
+    entity.orientation = Vector3(0, 0, 0); // 默认为零旋转
+    // 复制旋转矩阵
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            entity.rotation[i][j] = pcaData.rotation[i][j];
+        }
+    }
     
     // 生成物理引擎句柄
     std::stringstream phandle;
