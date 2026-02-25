@@ -198,4 +198,6 @@ This represents the smallest closed-loop functionality that demonstrates the sca
 
 1. **No Semantics**: The scanner must not perform any semantic interpretation or object classification
 2. **Pure Geometry**: Focus exclusively on geometric and statistical analysis
-3. **Modular Design**: Maintain strict separation
+3. **Modular Design**: Maintain strict separation between core analysis and integration components
+4. **Standard Output**: Adhere to the SpatialStructurePackage specification
+5. **Performance**: Optimize for
