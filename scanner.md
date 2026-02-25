@@ -159,4 +159,15 @@ This output is designed to be:
      - Output JSON
    - **Usage**:
      ```
-     scanner input.splat
+     scanner input.splat --output pool.json
+     ```
+
+3. **scanner-engine-adapter** (Engine Embedded Version)
+   - **Responsibilities**:
+     - Convert SpatialStructurePackage to Information Pool format
+     - Directly inject into AME Admin
+   - **Dependencies**: scanner-core
+
+### Technology Stack
+
+-
