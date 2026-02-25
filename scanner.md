@@ -189,3 +189,11 @@ This output is designed to be:
 ### Minimum Viable Product (2-Week Goal)
 Focus on completing:
 - 3DGS reading
+- DBSCAN clustering
+- Cluster list output
+
+This represents the smallest closed-loop functionality that demonstrates the scanner's core purpose.
+
+## 7. Important Guidelines
+
+1. **
