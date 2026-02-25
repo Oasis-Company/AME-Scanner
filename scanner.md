@@ -1,17 +1,17 @@
 # AME Scanner: Project Overview
 
-## 1. Project Introduction
+## Project Overview
 
-AME Scanner is a critical component of the AMAR Engine ecosystem, designed to process 3D Gaussian Splatting (3DGS) data and convert it into structured spatial information for the Information Pool. The scanner plays a crucial role in the multi-path world construction pipeline, providing raw structural data that feeds into the AME Admin's metaclass inference process.
+AME Scanner is an autonomous sensory component of the AMAR Engine ecosystem, designed to convert raw Gaussian Splatting (3DGS) radiance fields into structured spatial data. It serves as a critical input layer for the AMAR Engine, providing raw structured information to the Information Pool for subsequent metaclass inference by the AME Admin.
 
-## 2. Architecture Integration
+## Project Positioning
 
-### Position in AMAR Engine Architecture
+Within the AMAR Engine architecture, AME Scanner occupies a distinct position:
 
 ```
 Input Layer
 ↓
-Information Pool ← [AME Scanner Output]
+Information Pool
 ↓
 AME Admin (Metaclass Inference)
 ↓
@@ -22,87 +22,65 @@ GENIS Runtime Adapter
 Genesis Physics Core
 ```
 
-The scanner operates exclusively within the Input Layer, generating raw structured information without performing any metaclass inference. This strict separation ensures the integrity of the AMAR Engine's layered architecture.
+As part of the Input Layer, AME Scanner generates raw structured information rather than finalized world structures. It operates strictly within the generative and descriptive domain, without performing any metaclass inference.
 
-## 3. Development Phases
+## Core Functions
 
-The scanner development is divided into 5 distinct phases:
+AME Scanner performs several key operations:
 
-### Phase 1: 3DGS Reading and Parsing
-- **Goal**: Establish a stable 3DGS reader
-- **Tasks**:
-  - Parse .ply / .splat / custom formats
-  - Read position, covariance matrix, opacity, and color data
-  - Convert to internal Gaussian data structure
-- **Output**:
-  ```python
-  class Gaussian:
-      position: Vec3
-      covariance: Mat3
-      color: Vec3
-      opacity: float
-  ```
-- **Completion Criteria**: Successfully load a 3DGS field and visualize point distribution
-- **Estimated Time**: 1-2 days
+1. **3DGS Data Loading**
+   - Reads various Gaussian Splatting formats (.ply, .splat, custom formats)
+   - Extracts essential geometric properties (position, covariance matrix, opacity, color)
+   - Converts data into internal representation
 
-### Phase 2: Spatial Density Field Analysis
-- **Goal**: Build continuous density approximation from Gaussian collection
-- **Tasks**:
-  - Voxelization or KD-Tree based local density query
-  - Calculate local density gradients, sparse regions, and high-density regions
-- **Output**: density_field, gradient_field
-- **Completion Criteria**: Ability to output density heatmap
-- **Estimated Time**: 2-3 days
+2. **Spatial Density Analysis**
+   - Constructs continuous density approximation from Gaussian distributions
+   - Computes local density gradients
+   - Identifies sparse and dense regions
 
-### Phase 3: Clustering and Region Separation
-- **Goal**: Split continuous field into candidate structural blocks
-- **Methods**: DBSCAN (density-based), Mean Shift, or spatial connectivity
-- **Output**:
-  ```python
-  clusters = [
-    {gaussian_ids: [...]},
-    {gaussian_ids: [...]},
-    ...
-  ]
-  ```
-- **Completion Criteria**: 3DGS split into several spatial blocks (no naming, no classification, only编号)
-- **Estimated Time**: 2-3 days
+3. **Clustering and Region Segmentation**
+   - Segments continuous fields into candidate structural blocks
+   - Uses density-based clustering algorithms
+   - Outputs anonymous, unclassified spatial clusters
 
-### Phase 4: Surface Candidate Extraction
-- **Goal**: Identify potential "boundary surfaces"
-- **Methods**: Local PCA, normal estimation, curvature analysis
-- **Output**:
-  ```python
-  surface_candidates = [
-    {
-      cluster_id,
-      normal_vector,
-      area_estimate,
-      curvature_stats
-    }
-  ]
-  ```
-- **Completion Criteria**: Geometric statistics without semantic interpretation
-- **Estimated Time**: 3-4 days
+4. **Surface Candidate Extraction**
+   - Identifies potential boundary surfaces
+   - Performs local PCA and normal estimation
+   - Computes curvature statistics
 
-### Phase 5: Spatial Relationship Graph Construction
-- **Goal**: Generate spatial topology relationships
-- **Identify**: Contact, adjacency, containment, support (based on Z-axis and contact area)
-- **Output**:
-  ```python
-  spatial_graph = {
-    nodes: cluster_ids,
-    edges: [
-      (A, B, relation_type, metrics)
-    ]
-  }
-  ```
-- **Completion Criteria**: Pure spatial relationship graph output
-- **Estimated Time**: 3 days
+5. **Spatial Relationship Graph Construction**
+   - Generates spatial topology relationships
+   - Identifies adjacency, intersection, and support candidates
+   - Creates a purely geometric relationship graph
 
-## 4. Final Output Format
+## Technical Architecture
 
-The scanner produces a **Raw Spatial Structure Package** in JSON format:
+AME Scanner is structured in three components:
+
+### 1. scanner-core
+The core algorithmic component that performs:
+- 3DGS loading and parsing
+- Density field analysis
+- Clustering operations
+- Surface candidate extraction
+- Spatial relationship graph construction
+
+This component is designed as a pure spatial analysis library with no dependencies on other AMAR Engine components.
+
+### 2. scanner-cli
+An offline tool that:
+- Reads 3DGS files
+- Invokes scanner-core functionality
+- Outputs structured JSON data
+
+### 3. scanner-engine-adapter
+An integration component that:
+- Converts SpatialStructurePackage to Information Pool format
+- Directly injects data into AME Admin
+
+## Output Format
+
+AME Scanner produces a SpatialStructurePackage containing:
 
 ```json
 {
@@ -113,103 +91,34 @@ The scanner produces a **Raw Spatial Structure Package** in JSON format:
 }
 ```
 
-This output is designed to be:
-- Free of metaclasses
-- Free of semantics
-- Free of object naming
-- Purely geometric and statistical
+This output is purely geometric and contains no semantic information, maintaining the clean separation between information gathering and metaclass inference.
 
-## 5. Technical Architecture
-
-### Three-Tier Structure
-
-1. **scanner-core** (True Core)
-   - **Responsibilities**:
-     - Read 3DGS data
-     - Density analysis
-     - Clustering
-     - Surface candidate extraction
-     - Spatial relationship graph construction
-   - **Dependencies**: None (pure spatial analysis library)
-   - **Directory Structure**:
-     ```
-     scanner-core/
-       src/
-         io/
-           g3ds_loader.py
-         density/
-           voxelizer.py
-         clustering/
-           dbscan.py
-         surface/
-           pca_surface.py
-         graph/
-           spatial_graph.py
-         models/
-           gaussian.py
-           cluster.py
-       tests/
-     ```
-   - **Output**: SpatialStructurePackage (standard data structure)
-
-2. **scanner-cli** (Offline Tool)
-   - **Responsibilities**:
-     - Read 3DGS files
-     - Call scanner-core
-     - Output JSON
-   - **Usage**:
-     ```
-     scanner input.splat --output pool.json
-     ```
-
-3. **scanner-engine-adapter** (Engine Embedded Version)
-   - **Responsibilities**:
-     - Convert SpatialStructurePackage to Information Pool format
-     - Directly inject into AME Admin
-   - **Dependencies**: scanner-core
-
-### Technology Stack
+## Technology Stack
 
 - **Language**: Python (prototype phase)
-- **Libraries**:
-  - numpy
-  - scipy
-  - sklearn (DBSCAN)
-  - open3d (point cloud processing)
-  - pyvista (visualization)
+- **Core Libraries**:
+  - NumPy for numerical computations
+  - SciPy for scientific algorithms
+  - scikit-learn for clustering (DBSCAN)
+  - Open3D for point cloud processing
+  - PyVista for visualization
 
-## 6. Development Roadmap
+## Development Philosophy
 
-### Recommended Development Order
-1. Implement scanner-core
-2. Create minimal scanner-cli
-3. Output cluster JSON
-4. Develop adapter later
+AME Scanner adheres to several key principles:
 
-### Minimum Viable Product (2-Week Goal)
-Focus on completing:
-- 3DGS reading
-- DBSCAN clustering
-- Cluster list output
+1. **Semantic Neutrality**: The scanner does not perform any semantic inference, preserving the clean separation between information gathering and metaclass assignment.
 
-This represents the smallest closed-loop functionality that demonstrates the scanner's core purpose.
+2. **Modularity**: Core functionality is isolated in scanner-core, enabling independent development and deployment.
 
-## 7. Important Guidelines
+3. **Scalability**: The architecture supports both standalone operation and engine integration.
 
-1. **No Semantics**: The scanner must not perform any semantic interpretation or object classification
-2. **Pure Geometry**: Focus exclusively on geometric and statistical analysis
-3. **Modular Design**: Maintain strict separation between core analysis and integration components
-4. **Standard Output**: Adhere to the SpatialStructurePackage specification
-5. **Performance**: Optimize for handling large 3DGS datasets efficiently
+4. **Extensibility**: The design allows for future expansion with new algorithms and formats.
 
-## 8. Success Criteria
+5. **Performance**: Focus on efficient processing of large 3DGS datasets.
 
-The project will be considered successful when:
-- It can reliably process 3DGS data from multiple sources
-- It produces consistent, high-quality spatial clustering
-- Its output seamlessly integrates with the Information Pool
-- It maintains the strict separation of concerns defined by the AMAR Engine architecture
+## Strategic Importance
 
-## 9. Conclusion
+AME Scanner is a foundational component of the AMAR Engine ecosystem, providing the critical first step in converting raw sensor data into structured spatial information. Its ability to extract meaningful geometric relationships from unstructured point clouds enables the subsequent metaclass inference process, ultimately contributing to the creation of persistent, executable world specifications.
 
-AME Scanner is a foundational component of the AMAR Engine's world construction pipeline. By providing structured spatial information from raw 3DGS data, it enables the AME Admin to perform accurate metaclass inference, ultimately leading to more robust and realistic virtual environments. The modular design and phased development approach ensure that the scanner will be both effective and adaptable to future requirements.
+By maintaining strict separation between information gathering and semantic inference, AME Scanner ensures the integrity of the AMAR Engine's layered architecture, enabling portability, versionability, and modular backend replacement.
