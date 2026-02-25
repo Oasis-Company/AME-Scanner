@@ -182,4 +182,10 @@ This output is designed to be:
 
 ### Recommended Development Order
 1. Implement scanner-core
-2. Create minimal
+2. Create minimal scanner-cli
+3. Output cluster JSON
+4. Develop adapter later
+
+### Minimum Viable Product (2-Week Goal)
+Focus on completing:
+- 3DGS reading
