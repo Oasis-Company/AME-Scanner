@@ -170,4 +170,10 @@ This output is designed to be:
 
 ### Technology Stack
 
--
+- **Language**: Python (prototype phase)
+- **Libraries**:
+  - numpy
+  - scipy
+  - sklearn (DBSCAN)
+  - open3d (point cloud processing)
+  - pyvista
