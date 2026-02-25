@@ -212,4 +212,4 @@ The project will be considered successful when:
 
 ## 9. Conclusion
 
-AME Scanner is a foundational component of the AMAR Engine's world construction pipeline. By providing structured spatial information from raw 3
+AME Scanner is a foundational component of the AMAR Engine's world construction pipeline. By providing structured spatial information from raw 3DGS data, it enables the AME Admin to perform accurate metaclass inference, ultimately leading
