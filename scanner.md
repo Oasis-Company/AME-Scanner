@@ -178,4 +178,8 @@ This output is designed to be:
   - open3d (point cloud processing)
   - pyvista (visualization)
 
-## 6.
+## 6. Development Roadmap
+
+### Recommended Development Order
+1. Implement scanner-core
+2. Create minimal
