@@ -176,4 +176,6 @@ This output is designed to be:
   - scipy
   - sklearn (DBSCAN)
   - open3d (point cloud processing)
-  - pyvista
+  - pyvista (visualization)
+
+## 6.
