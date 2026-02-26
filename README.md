@@ -1,99 +1,195 @@
-# AME SCANNER: THE KINETIC PROBE
+# AME Scanner
 
-## THE PHILOSOPHY
+## Project Overview
 
-The physical world is not a collection of pixels; it is a convergence of **density**, **intent**, and **structural logic**.  
+AME Scanner is an autonomous sensory component of the AMAR Engine ecosystem, designed to convert raw Gaussian Splatting (3DGS) radiance fields into structured spatial data. It serves as a critical input layer for the AMAR Engine, providing raw structured information to the AME Admin for subsequent metaclass inference.
 
-Traditional 3D reconstruction treats environments as hollow shells.  
-**AME Scanner** treats them as raw, unorganized matter—awaiting a system.
+## Core Functions
 
-This repository hosts the **autonomous sensory organ** of the **AMAR Engine (AME)**.  
-The Scanner does not "model" scenes. It **invades** them.  
+### 1. 3DGS Data Loading
+- Supports Gaussian Splatting data in .ply and .splat formats
+- Extracts essential geometric properties (position, color, opacity, scale, rotation)
+- Converts data into internal Gaussian representation
 
-It traverses **Gaussian Splatting (GS) radiance fields**, identifies **density gradients**, and establishes the initial **geometric anchors** (*Proxy Boxes*) required for the **AME Admin** to perform **Metaclass binding**.
+### 2. Spatial Density Analysis
+- Constructs continuous density approximation from Gaussian distributions
+- Computes local density at arbitrary points
+- Identifies dense regions using density thresholding
+- Provides comprehensive density statistics
+
+### 3. Clustering and Region Segmentation
+- Segments continuous fields into candidate structural blocks using DBSCAN algorithm
+- Outputs anonymous, unclassified spatial clusters
+- Supports configurable clustering parameters (epsilon, min points)
+
+### 4. Surface Candidate Extraction
+- Identifies potential boundary surfaces based on curvature analysis
+- Performs local PCA and normal estimation for each Gaussian
+- Computes curvature statistics to distinguish surface regions
+- Groups surface candidates into connected regions
+
+### 5. Spatial Relationship Graph Construction
+- Generates spatial topology relationships between entities
+- Identifies adjacency, containment, and relative position relationships
+- Creates a purely geometric relationship graph
+- Supports graph visualization in DOT format
+
+## Technical Architecture
+
+AME Scanner is structured in three main components:
+
+### 1. scanner-core
+The core algorithmic component that performs:
+- 3DGS loading and parsing (via FieldLoader)
+- Density field analysis (via DensityAnalyzer)
+- Clustering operations (via DBSCAN)
+- Surface candidate extraction (via SurfaceExtractor)
+- Spatial relationship graph construction (via SpatialGraph)
+
+### 2. scanner-cli
+An offline tool that:
+- Reads 3DGS files (.ply, .splat)
+- Invokes scanner-core functionality
+- Outputs SpatialStructurePackage in binary format
+- Provides command-line parameters for configuration
+
+### 3. scanner-engine-adapter
+An integration component that:
+- Converts SpatialStructurePackage to Information Pool format
+- Directly injects data into AME Admin
+
+## Output Format
+
+AME Scanner produces a SpatialStructurePackage containing:
+
+- **Scene Bounding Box**: OBB (Oriented Bounding Box) for the entire scene
+- **Entities**: List of AmeEntity objects, each containing:
+  - Unique ID
+  - OBB (Oriented Bounding Box)
+  - Mesh path (if applicable)
+  - Metaclass (initially "unknown")
+  - Physics handle
+- **Relationships**: List of SpatialRelationship objects, each containing:
+  - Source and target entity IDs
+  - Relationship type (contains, adjacent_to, above, etc.)
+  - Confidence score
+- **Metadata**: Version, timestamp, processing time, and statistics
+
+## Technology Stack
+
+- **Language**: C++20
+- **Core Libraries**:
+  - Eigen for linear algebra and vector operations
+  - Standard C++ libraries for data structures and algorithms
+- **Build System**: CMake
+- **Testing Framework**: Built-in test infrastructure
+
+## Installation and Usage
+
+### Building the Project
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/AME-Scanner.git
+   cd AME-Scanner
+   ```
+
+2. Create build directory:
+   ```bash
+   mkdir build
+   cd build
+   ```
+
+3. Configure CMake:
+   ```bash
+   cmake ..
+   ```
+
+4. Build the project:
+   ```bash
+   cmake --build . --config Release
+   ```
+
+### Using scanner-cli
+
+```bash
+# Basic usage
+scanner-cli input_file.ply output.ssp
+
+# Using custom parameters
+scanner-cli --epsilon 0.15 --min-pts 10 input_file.splat output.ssp
+
+# Enable verbose output
+scanner-cli --verbose input_file.ply output.ssp
+```
+
+## Examples
+
+### Processing 3DGS Data and Generating Spatial Structure Package
+
+```cpp
+#include "field_loader.h"
+#include "dbscan.h"
+#include "spatial_structure_package.h"
+
+int main() {
+    // Load 3DGS data
+    AmeScanner::FieldLoader loader;
+    std::vector<AmeScanner::Gaussian> gaussians;
+    loader.loadFromPLY("input.ply", gaussians);
+    
+    // Perform DBSCAN clustering
+    AmeScanner::DBSCAN dbscan(0.1f, 5);
+    auto clusters = dbscan.cluster(gaussians);
+    
+    // Create SpatialStructurePackage
+    AmeScanner::SpatialStructurePackage ssp;
+    // ... populate data ...
+    
+    // Serialize output
+    ssp.serialize("output.ssp");
+    
+    return 0;
+}
+```
+
+## Verification Plan
+
+AME Scanner project includes a detailed verification plan to ensure all core functions work correctly. The verification plan includes:
+
+- 3DGS data loading verification
+- DBSCAN clustering algorithm verification
+- Density field analysis verification
+- Surface candidate extraction verification
+- Spatial relationship graph construction verification
+- SpatialStructurePackage output verification
+- scanner-cli command line tool verification
+- Integration testing
+- Performance testing
+- Code quality verification
+
+Detailed verification plan can be found in the `test-preparation` directory.
+
+## Contribution Guidelines
+
+We welcome community contributions! If you want to contribute to the AME Scanner project, please:
+
+1. Fork the repository
+2. Create a new branch
+3. Implement your changes
+4. Write tests
+5. Submit a pull request
+
+## License
+
+AME Scanner project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+
+- Project Home: https://github.com/yourusername/AME-Scanner
+- Issue Tracking: https://github.com/yourusername/AME-Scanner/issues
 
 ---
 
-## THE ARCHITECTURE
-
-The Scanner operates on a **Late-Binding Semantic architecture**.  
-It is intentionally blind to object identity. Its sole purpose:  
-> **Extract spatial truth from chaotic field data.**
-
-### 1. Field Traversal  
-The probe navigates the 3D radiance field using a **density-weighted sampling algorithm**.  
-It ignores transient noise and floating artifacts, focusing exclusively on the **core volumetric mass** of real-world entities.
-
-### 2. Primitive Encapsulation  
-Upon detecting a structural cluster, the Scanner:  
-- Calculates the **minimal bounding volume**,  
-- Generates a temporary **AEID-Alpha**,  
-- Produces a **localized feature hash**.  
-
-This state—before a thing becomes a *Thing*—is called the **Primitive State**.
-
-### 3. Admin Handshake  
-The Scanner transmits a structured payload to the **AME Admin**, including:  
-- Spatial coordinates,  
-- Bounding volume,  
-- Visual signature.  
-
-It then awaits a **Metaclass instruction** in return.
-
----
-
-## TECHNICAL CHALLENGES
-
-We are not looking for generalists.  
-We seek those who understand the intersection of:
-
-- **Radiance Field Deconstruction**: Moving beyond visualization into *structural analysis* of 3D Gaussian Splatting (3DGS).  
-- **Spatial Adjacency Logic**: Determining where one object ends and the environment begins—**without human labeling**.  
-- **Kinetic Probing**: Developing agents that can "**touch**" a digital field to verify **solidity** and **mass**.
-
----
-
-## THE WORKFLOW
-
-| Stage   | Action |
-|--------|--------|
-| **INPUT**  | Raw Gaussian Splatting data |
-| **PROBE**  | High-speed density cluster detection |
-| **ANCHOR** | Generation of localized Proxy Boxes |
-| **EMIT**   | Export structural JSON payloads to AME Admin for Metaclass injection |
-
----
-
-## JOIN THE REVOLUTION
-
-> If you believe the Metaverse is currently a **graveyard of dead meshes**, help us build the tools that bring it to life.
-
-We are replacing **static polygons** with **dynamic systems**.
-
-- The **AME Admin** is the brain.  
-- The **Scanner** is the hand.
-
----
-
-## EXPORT OPTIONS
-
-AME offers two export options:
-
-1. **oasisdomain (osdm)** - The primary and most common export format for interactive worlds. Note that osdm is not a file format but a folder structure specification.
-
-2. **eme world (emewd)** - A special single-file export format that is part of the eme project (another of our initiatives, a radical AI project where AI agents learn like human infants). This feature is not included by default and must be downloaded as a plugin. The eme world can exist without a 3D scene for human display.
-
-## METACLASS SUPPLEMENT
-
-1. Each metaclass has its own independent parameter list
-2. Metaclasses will be continuously updated (both in quantity and individual parameters)
-3. The overall trend is from concrete to abstract, as metaclasses evolve from real-world origins to increasingly self-consistent systems
-4. Metaclasses can be divided into two main categories:
-   a. **Root Metaclasses**: Such as smoothness, space (these can also serve as parameters for standard metaclasses)
-   b. **Standard Metaclasses**: Containers, wheels, liquids, etc. (grass and water are examples of their objects; root metaclasses have no objects, which is the fundamental difference)
-5. A metaclass can have multiple representations (e.g., space can be represented in Cartesian coordinates or from a sensory perspective); each representation is called a "room"
-
----
-
-*Oasis Company / AMAR Engine Project*  
+*Oasis Company / AMAR Engine Project*
 **Direction defines miracles.**
